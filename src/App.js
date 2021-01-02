@@ -5,7 +5,7 @@ import  ShopPage from './pages/shop/shop.component';
 import { Route, Switch } from 'react-router-dom'
 import Header from './components/header/header.component'
 import SignInAndSignUp from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component'
-import { auth } from './firebase/firebase.utils'
+import { auth, createUserProfileDocument } from './firebase/firebase.utils'
 
 const HatsPage = () => {
   return (
@@ -28,9 +28,22 @@ class App extends Component {
 
 
   componentDidMount(){
-   this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({currentUser: user})
-      console.log(user)
+   this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+     if(userAuth){
+       const userRef = await createUserProfileDocument(userAuth);
+
+       userRef.onSnapshot(snapshot=> {
+         console.log(snapshot.id,'snap')
+         this.setState({
+           currentUser: {
+             id: snapshot.id,
+             ...snapshot.data()
+           }
+         });
+       });
+       
+    }
+    this.setState({currentUser: null})
     })
   }
 
